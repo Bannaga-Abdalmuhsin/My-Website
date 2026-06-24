@@ -56,26 +56,44 @@ def build():
 
     story = []
 
-    # ── NAME & CONTACT ────────────────────────────────────────────────────────
-    story.append(Paragraph("Bannaga Altieb Abdul Muhsin", NAME))
-    story.append(sp(4))
-    story.append(Paragraph("Electrical Project Engineer  |  Riyadh, Saudi Arabia", TITLE))
-    story.append(sp(3))
-    story.append(Paragraph("CEM®  ·  CMVP®  ·  LEED Green Associate", CRED))
-    story.append(sp(6))
+    # ══════════════════════════════════════════════════════════════════════════
+    # SECTION BUILDERS (assembled in old-CV order at the end)
+    # ══════════════════════════════════════════════════════════════════════════
+    header = []
+    summary = []
+    overview = []
+    ai_dev = []
+    accomplish = []
+    experience_sec = []
+    projects_sec = []
+    education_sec = []
+    skills_sec = []
+    certs_sec = []
+    mla_sec = []
+    hobbies_sec = []
+    footer = []
 
-    # Contact row
-    story.append(Paragraph(
+    # ── NAME & CONTACT ────────────────────────────────────────────────────────
+    header.append(Paragraph("Bannaga Altieb Abdul Muhsin", NAME))
+    header.append(sp(4))
+    header.append(Paragraph("Electrical Project Engineer  —  Riyadh, Saudi Arabia", TITLE))
+    header.append(sp(3))
+    header.append(Paragraph(
+        "Telecom &amp; industrial passive infrastructure  ·  Energy optimization  ·  O&amp;M excellence", CRED))
+    header.append(sp(5))
+    header.append(Paragraph("CEM®  ·  CMVP®  ·  LEED Green Associate", CRED))
+    header.append(sp(6))
+    header.append(Paragraph(
         "+966 54 296 6343  |  eng.altieb@gmail.com  |  linkedin.com/in/bannaga-abdalmuhsin  |  "
         "x.com/AltiebBannaga  |  instagram.com/bannga.altieb  |  tiktok.com/@bannagaaltieb94  |  "
         "facebook.com/bannga.altieb",
         CONTACT))
-    story.append(sp(8))
-    story.append(HRFlowable(width="100%", thickness=2, color=ACCENT, spaceAfter=10, spaceBefore=0))
+    header.append(sp(8))
+    header.append(HRFlowable(width="100%", thickness=2, color=ACCENT, spaceAfter=10, spaceBefore=0))
 
     # ── PROFESSIONAL SUMMARY ──────────────────────────────────────────────────
-    story += section("Professional Summary")
-    story.append(Paragraph(
+    summary += section("Professional Summary")
+    summary.append(Paragraph(
         "Certified Energy Manager (CEM®) and Certified Measurement &amp; Verification Professional (CMVP®) with "
         "14+ years of experience in electrical and energy engineering. Specializes in project management, telecom "
         "power systems, energy-efficient solutions, and technical operations across diverse infrastructure. "
@@ -84,9 +102,10 @@ def build():
         "telecom, power generation, and industrial sectors. Holds a B.Sc. in Electronic Control Engineering with "
         "additional certifications in LEED Green Associate and SCADA systems. Fluent in English and Arabic.",
         BODY))
-    story.append(sp(10))
+    summary.append(sp(10))
 
-    # ── KEY METRICS ───────────────────────────────────────────────────────────
+    # ── OVERVIEW / KEY METRICS ────────────────────────────────────────────────
+    overview += section("Overview")
     metrics_data = [[
         Paragraph("14+\nYears Experience", ParagraphStyle("m", fontName="Helvetica-Bold", fontSize=10,
             textColor=ACCENT, leading=14, alignment=TA_CENTER)),
@@ -107,11 +126,11 @@ def build():
         ("GRID",         (0,0), (-1,-1), 0.5, LINE),
         ("ROUNDEDCORNERS",(0,0),(-1,-1), [4,4,4,4]),
     ]))
-    story.append(metrics)
-    story.append(sp(10))
+    overview.append(metrics)
+    overview.append(sp(10))
 
     # ── EXPERIENCE ────────────────────────────────────────────────────────────
-    story += section("Professional Experience")
+    experience_sec += section("Experience")
 
     experience = [
         ("2019 – Present", "Electrical Project Engineer", "ACES  |  Riyadh, Saudi Arabia", [
@@ -155,7 +174,7 @@ def build():
             ("TOPPADDING", (0,0), (-1,-1), 0),
             ("BOTTOMPADDING", (0,0), (-1,-1), 0),
         ]))
-        story.append(KeepTogether([
+        experience_sec.append(KeepTogether([
             job_header,
             Paragraph(company, JOB_C),
             sp(3),
@@ -164,7 +183,7 @@ def build():
         ]))
 
     # ── KEY PROJECTS ──────────────────────────────────────────────────────────
-    story += section("Key Projects")
+    projects_sec += section("Key Projects")
 
     projects = [
         ("STC COW Network — O&amp;M &amp; Energy Optimization",
@@ -188,15 +207,15 @@ def build():
     ]
 
     for title, desc in projects:
-        story.append(KeepTogether([
+        projects_sec.append(KeepTogether([
             Paragraph(f"<b>{title}</b>", SMALL),
             Paragraph(desc, BODY),
             sp(5),
         ]))
-    story.append(sp(4))
+    projects_sec.append(sp(4))
 
     # ── KEY ACCOMPLISHMENTS ───────────────────────────────────────────────────
-    story += section("Key Accomplishments")
+    accomplish += section("Key Accomplishments")
     accomplishments = [
         "Reduced nationwide telecom site utility costs by up to <b>18%</b> through multi-phase energy optimization programs.",
         "Delivered uninterrupted O&amp;M coverage for STC COW &amp; Mobily ENM with proactive outage prevention strategies.",
@@ -207,32 +226,32 @@ def build():
         "Version-controlled all engineering documentation and templates using Git/GitHub workflows.",
     ]
     for a in accomplishments:
-        story.append(Paragraph(f"• {a}", BULLET))
-        story.append(sp(2))
-    story.append(sp(8))
+        accomplish.append(Paragraph(f"• {a}", BULLET))
+        accomplish.append(sp(2))
+    accomplish.append(sp(8))
 
     # ── AI & DEVELOPMENT ──────────────────────────────────────────────────────
-    story += section("AI & Development")
-    story.append(Paragraph("<b>AI &amp; Automation</b>", BOLD))
+    ai_dev += section("AI & Development")
+    ai_dev.append(Paragraph("<b>AI &amp; Automation</b>", BOLD))
     for b in [
         "Designed Python-based automation to streamline energy performance reporting and KPI tracking across sites.",
         "Developed machine-learning-based anomaly detection alerts for telecom site power consumption behavior.",
         "Built governance-ready Energy &amp; Environmental dashboards for real-time CO2 footprint monitoring.",
         "Applied Power BI, SQL Server, and DAX to model and visualize operational trends across multi-site networks.",
     ]:
-        story.append(Paragraph(f"• {b}", BULLET))
-    story.append(sp(4))
-    story.append(Paragraph("<b>Development &amp; Tools</b>", BOLD))
+        ai_dev.append(Paragraph(f"• {b}", BULLET))
+    ai_dev.append(sp(4))
+    ai_dev.append(Paragraph("<b>Development &amp; Tools</b>", BOLD))
     for b in [
         "Created reusable troubleshooting guides and diagnostic scripts for SCADA / PLC / DCS systems.",
         "Documented API-style checklists to standardize field data capture and site integrations.",
         "Version-controlled documentation and engineering templates using Git/GitHub workflows.",
     ]:
-        story.append(Paragraph(f"• {b}", BULLET))
-    story.append(sp(10))
+        ai_dev.append(Paragraph(f"• {b}", BULLET))
+    ai_dev.append(sp(10))
 
     # ── SKILLS ────────────────────────────────────────────────────────────────
-    story += section("Technical Skills")
+    skills_sec += section("Skills")
 
     skill_groups = [
         ("Power Systems & Electrical",
@@ -265,11 +284,11 @@ def build():
             ("RIGHTPADDING", (0,0), (-1,-1), 0),
             ("LINEBELOW", (0,0), (-1,-1), 0.3, LINE),
         ]))
-        story.append(row)
-    story.append(sp(10))
+        skills_sec.append(row)
+    skills_sec.append(sp(10))
 
     # ── EDUCATION ─────────────────────────────────────────────────────────────
-    story += section("Education")
+    education_sec += section("Education")
     edu = Table([[
         Paragraph("B.Sc. Electronic Engineering (Control)", JOB_T),
         Paragraph("2007 – 2012", ParagraphStyle("dr", fontName="Helvetica-Oblique", fontSize=8.5,
@@ -282,12 +301,12 @@ def build():
         ("TOPPADDING", (0,0), (-1,-1), 0),
         ("BOTTOMPADDING", (0,0), (-1,-1), 0),
     ]))
-    story.append(edu)
-    story.append(Paragraph("El Neelain University — Khartoum, Sudan", JOB_C))
-    story.append(sp(10))
+    education_sec.append(edu)
+    education_sec.append(Paragraph("El Neelain University — Khartoum, Sudan", JOB_C))
+    education_sec.append(sp(10))
 
     # ── CERTIFICATIONS ────────────────────────────────────────────────────────
-    story += section("Certifications & Training")
+    certs_sec += section("Certifications &amp; Training")
     certs = [
         ("CMVP®", "Certified Measurement &amp; Verification Professional"),
         ("CEM®", "Certified Energy Manager"),
@@ -314,8 +333,8 @@ def build():
         ("BOTTOMPADDING", (0,0), (-1,-1), 3),
         ("LINEBELOW", (0,0), (-1,-1), 0.3, LINE),
     ]))
-    story.append(cert_table)
-    story.append(sp(10))
+    certs_sec.append(cert_table)
+    certs_sec.append(sp(6))
 
     # ── MEMBERSHIPS, LANGUAGES, AVAILABILITY ──────────────────────────────────
     def mini_hdr(text):
@@ -355,26 +374,43 @@ def build():
         ("TOPPADDING", (0,0), (-1,-1), 0),
         ("BOTTOMPADDING", (0,0), (-1,-1), 0),
     ]))
-    story.append(KeepTogether(bottom_table))
-    story.append(sp(10))
+    mla_sec.append(KeepTogether(bottom_table))
+    mla_sec.append(sp(6))
 
     # ── HOBBIES ───────────────────────────────────────────────────────────────
-    story += section("Interests & Hobbies")
+    hobbies_sec += section("Hobbies & Interests")
     hobbies = ["Electrical Power Systems", "Energy Efficiency", "Automation & Control",
                "Data Analysis & Visualization", "Innovation & New Technologies", "AI & Machine Learning"]
-    story.append(Paragraph("  ·  ".join(hobbies), BODY))
-    story.append(sp(10))
+    hobbies_sec.append(Paragraph("  ·  ".join(hobbies), BODY))
+    hobbies_sec.append(sp(6))
 
     # ── FOOTER ────────────────────────────────────────────────────────────────
-    story.append(HRFlowable(width="100%", thickness=1, color=LINE, spaceAfter=6, spaceBefore=0))
-    story.append(Paragraph(
+    footer.append(HRFlowable(width="100%", thickness=1, color=LINE, spaceAfter=6, spaceBefore=0))
+    footer.append(Paragraph(
         '"You never change things by fighting the existing reality. '
         'To change something, build a new model that makes the old one obsolete."  — R. Buckminster Fuller',
         QUOTE))
-    story.append(sp(4))
-    story.append(Paragraph(
+    footer.append(sp(2))
+    footer.append(Paragraph(
         "© 2025 Eng. Bannaga Altieb Abdul Muhsin  ·  eng.altieb@gmail.com  ·  +966 54 296 6343",
         QUOTE))
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # ASSEMBLE in the same order as the old CV
+    # ══════════════════════════════════════════════════════════════════════════
+    story += header
+    story += summary
+    story += overview
+    story += ai_dev
+    story += accomplish
+    story += experience_sec
+    story += projects_sec
+    story += education_sec
+    story += skills_sec
+    story += certs_sec
+    story += mla_sec
+    story += hobbies_sec
+    story += footer
 
     doc.build(story)
     print("✓ PDF saved: assets/Bannaga_CV.pdf")
