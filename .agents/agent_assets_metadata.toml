@@ -6,3 +6,27 @@ id = "xyy6dKbQ04qdGbosrAxpo"
 uri = "file://assets/Bannaga_CV.pdf"
 type = "pdf"
 title = "Bannaga Altieb — CV (Matches Old CV Layout)"
+
+[[outputs]]
+id = "DmfR04DYtJ83sZm6auabm"
+uri = "file://attached_assets/cv_samples/sample1_clean_twocol.jpg"
+type = "image"
+title = "Style 1 — Clean Two-Column (B&W)"
+
+[[outputs]]
+id = "Yjm4wE8hAsCa8CEM1iI8L"
+uri = "file://attached_assets/cv_samples/sample3_blue_engineer.png"
+type = "image"
+title = "Style 3 — Royal Blue Engineer"
+
+[[outputs]]
+id = "Ic7uh17Z7GXTpY83RruDm"
+uri = "file://attached_assets/cv_samples/sample4_elegant_twocol.jpg"
+type = "image"
+title = "Style 4 — Elegant Two-Column"
+
+[[outputs]]
+id = "WtxdCa7IFAs3UCeB1iBTS"
+uri = "file://attached_assets/cv_samples/sample5_blue_accent.jpg"
+type = "image"
+title = "Style 5 — Modern Blue Sidebar"
