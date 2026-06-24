@@ -25,17 +25,17 @@ NAME    = ParagraphStyle("name",    fontName="Helvetica-Bold",    fontSize=22, t
 TITLE   = ParagraphStyle("title",   fontName="Helvetica",         fontSize=11, textColor=ACCENT, leading=14, alignment=TA_CENTER)
 CRED    = ParagraphStyle("cred",    fontName="Helvetica",         fontSize=8.5,textColor=GREY,   leading=12, alignment=TA_CENTER)
 CONTACT = ParagraphStyle("contact", fontName="Helvetica",         fontSize=8,  textColor=MID,    leading=12, alignment=TA_CENTER)
-SECHDR  = ParagraphStyle("sechdr",  fontName="Helvetica-Bold",    fontSize=10, textColor=ACCENT, leading=14, spaceAfter=2)
-BODY    = ParagraphStyle("body",    fontName="Helvetica",         fontSize=9,  textColor=MID,    leading=13, alignment=TA_JUSTIFY)
-BULLET  = ParagraphStyle("bullet",  fontName="Helvetica",         fontSize=9,  textColor=MID,    leading=13, leftIndent=12, firstLineIndent=-6)
-JOB_T   = ParagraphStyle("jobt",   fontName="Helvetica-Bold",    fontSize=9.5,textColor=DARK,   leading=13)
-JOB_C   = ParagraphStyle("jobc",   fontName="Helvetica-Bold",    fontSize=9,  textColor=ACCENT, leading=12)
-JOB_D   = ParagraphStyle("jobd",   fontName="Helvetica-Oblique", fontSize=8.5,textColor=GREY,   leading=12)
-SMALL   = ParagraphStyle("small",  fontName="Helvetica",         fontSize=8.5,textColor=MID,    leading=12)
-BOLD    = ParagraphStyle("bold",   fontName="Helvetica-Bold",    fontSize=9,  textColor=DARK,   leading=13)
+SECHDR  = ParagraphStyle("sechdr",  fontName="Helvetica-Bold",    fontSize=11, textColor=ACCENT, leading=15, spaceAfter=2)
+BODY    = ParagraphStyle("body",    fontName="Helvetica",         fontSize=9.5,textColor=MID,    leading=14, alignment=TA_JUSTIFY)
+BULLET  = ParagraphStyle("bullet",  fontName="Helvetica",         fontSize=9.5,textColor=MID,    leading=14, leftIndent=12, firstLineIndent=-6)
+JOB_T   = ParagraphStyle("jobt",   fontName="Helvetica-Bold",    fontSize=10.5,textColor=DARK,  leading=14)
+JOB_C   = ParagraphStyle("jobc",   fontName="Helvetica-Bold",    fontSize=9.5,textColor=ACCENT, leading=13)
+JOB_D   = ParagraphStyle("jobd",   fontName="Helvetica-Oblique", fontSize=9,  textColor=GREY,   leading=12)
+SMALL   = ParagraphStyle("small",  fontName="Helvetica",         fontSize=9,  textColor=MID,    leading=13)
+BOLD    = ParagraphStyle("bold",   fontName="Helvetica-Bold",    fontSize=9.5,textColor=DARK,   leading=14)
 QUOTE   = ParagraphStyle("quote",  fontName="Helvetica-Oblique", fontSize=8,  textColor=GREY,   leading=12, alignment=TA_CENTER)
-SKILL_L = ParagraphStyle("skl",    fontName="Helvetica-Bold",    fontSize=8.5,textColor=DARK,   leading=12)
-SKILL_V = ParagraphStyle("skv",    fontName="Helvetica",         fontSize=8.5,textColor=MID,    leading=12)
+SKILL_L = ParagraphStyle("skl",    fontName="Helvetica-Bold",    fontSize=9,  textColor=DARK,   leading=13)
+SKILL_V = ParagraphStyle("skv",    fontName="Helvetica",         fontSize=9,  textColor=MID,    leading=13)
 
 def sp(h=4): return Spacer(1, h)
 def hr(): return HRFlowable(width="100%", thickness=0.5, color=LINE, spaceAfter=5, spaceBefore=5)
@@ -318,44 +318,44 @@ def build():
     story.append(sp(10))
 
     # ── MEMBERSHIPS, LANGUAGES, AVAILABILITY ──────────────────────────────────
-    side_data = [
-        [
-            Table([[
-                Paragraph("Memberships", SECHDR),
-                HRFlowable(width="100%", thickness=1.5, color=ACCENT, spaceAfter=5, spaceBefore=0),
-                Paragraph("Saudi Council of Engineers (SCE)", SMALL),
-                Paragraph("Sudanese Engineers Association (SEA)", SMALL),
-            ]], colWidths=[(W - 36*mm) * 0.32]),
-            Table([[
-                Paragraph("Languages", SECHDR),
-                HRFlowable(width="100%", thickness=1.5, color=ACCENT, spaceAfter=5, spaceBefore=0),
-                Paragraph("Arabic — Native", SMALL),
-                Paragraph("English — Professional", SMALL),
-            ]], colWidths=[(W - 36*mm) * 0.28]),
-            Table([[
-                Paragraph("Availability", SECHDR),
-                HRFlowable(width="100%", thickness=1.5, color=ACCENT, spaceAfter=5, spaceBefore=0),
-                Paragraph("Sun–Thu: 8:00 AM – 6:00 PM", SMALL),
-                Paragraph("Weekends: On-call for urgent needs", SMALL),
-                Paragraph("Open to short-notice regional travel", SMALL),
-            ]], colWidths=[(W - 36*mm) * 0.37]),
+    def mini_hdr(text):
+        return [
+            Paragraph(text.upper(), SECHDR),
+            HRFlowable(width="100%", thickness=1.5, color=ACCENT, spaceAfter=5, spaceBefore=0),
         ]
+
+    col_members = [
+        *mini_hdr("Memberships"),
+        Paragraph("Saudi Council of Engineers (SCE)", SMALL),
+        Paragraph("Sudanese Engineers Association (SEA)", SMALL),
     ]
-    bottom_table = Table(side_data, colWidths=[
-        (W - 36*mm) * 0.32,
-        (W - 36*mm) * 0.28,
-        (W - 36*mm) * 0.37,
-    ])
+    col_langs = [
+        *mini_hdr("Languages"),
+        Paragraph("Arabic — Native", SMALL),
+        Paragraph("English — Professional", SMALL),
+    ]
+    col_avail = [
+        *mini_hdr("Availability"),
+        Paragraph("Sun–Thu: 8:00 AM – 6:00 PM", SMALL),
+        Paragraph("Weekends: On-call for urgent needs", SMALL),
+        Paragraph("Open to short-notice regional travel", SMALL),
+    ]
+
+    usable = W - 36*mm
+    bottom_table = Table(
+        [[col_members, col_langs, col_avail]],
+        colWidths=[usable * 0.32, usable * 0.30, usable * 0.38],
+    )
     bottom_table.setStyle(TableStyle([
         ("VALIGN", (0,0), (-1,-1), "TOP"),
-        ("LEFTPADDING", (0,0), (-1,-1), 0),
-        ("RIGHTPADDING", (0,0), (0,-1), 8),
-        ("RIGHTPADDING", (1,0), (1,-1), 8),
-        ("RIGHTPADDING", (2,0), (2,-1), 0),
+        ("LEFTPADDING", (0,0), (0,-1), 0),
+        ("LEFTPADDING", (1,0), (-1,-1), 8),
+        ("RIGHTPADDING", (0,0), (-1,-1), 8),
+        ("RIGHTPADDING", (-1,0), (-1,-1), 0),
         ("TOPPADDING", (0,0), (-1,-1), 0),
         ("BOTTOMPADDING", (0,0), (-1,-1), 0),
     ]))
-    story.append(bottom_table)
+    story.append(KeepTogether(bottom_table))
     story.append(sp(10))
 
     # ── HOBBIES ───────────────────────────────────────────────────────────────
