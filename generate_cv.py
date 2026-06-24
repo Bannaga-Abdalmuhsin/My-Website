@@ -1,411 +1,380 @@
 """
-Modern ATS-friendly CV — Bannaga Altieb Abdul Muhsin
-Uses ReportLab multi-frame layout: header frame + sidebar frame + main frame
+Clean professional CV — Bannaga Altieb Abdul Muhsin
+Standard ATS-friendly single-column format, light background.
 """
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.lib.units import mm
 from reportlab.lib.styles import ParagraphStyle
-from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_RIGHT
-from reportlab.platypus import (
-    BaseDocTemplate, PageTemplate, Frame, FrameBreak,
-    Paragraph, Spacer, HRFlowable, KeepTogether, Flowable, Table, TableStyle
-)
+from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_RIGHT, TA_JUSTIFY
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, HRFlowable, Table, TableStyle, KeepTogether
 
 W, H = A4
 
-# ── Palette ───────────────────────────────────────────────────────────────────
-BG       = colors.HexColor("#0d1117")
-BG_HDR   = colors.HexColor("#161b27")
-BG_SB    = colors.HexColor("#13182a")
-INDIGO   = colors.HexColor("#6366f1")
-PURPLE   = colors.HexColor("#8b5cf6")
-CYAN     = colors.HexColor("#22d3ee")
-GREEN    = colors.HexColor("#4ade80")
-ORANGE   = colors.HexColor("#fb923c")
-PINK     = colors.HexColor("#f472b6")
-WHITE    = colors.HexColor("#f1f5f9")
-SL3      = colors.HexColor("#cbd5e1")
-SL4      = colors.HexColor("#94a3b8")
-SL5      = colors.HexColor("#64748b")
-SL6      = colors.HexColor("#334155")
+# ── Colours ───────────────────────────────────────────────────────────────────
+ACCENT  = colors.HexColor("#1e40af")   # professional navy blue
+DARK    = colors.HexColor("#111827")
+MID     = colors.HexColor("#374151")
+GREY    = colors.HexColor("#6b7280")
+LIGHT   = colors.HexColor("#f3f4f6")
+WHITE   = colors.white
+LINE    = colors.HexColor("#d1d5db")
 
-# ── Dimensions ────────────────────────────────────────────────────────────────
-HDR_H  = 42 * mm
-SB_W   = 64 * mm
-PAD    = 6  * mm
-BODY_H = H - HDR_H - 2 * mm
-MN_W   = W - SB_W - 3 * mm        # main col usable width
-SB_IW  = SB_W - 2 * PAD           # sidebar inner width
-MN_IW  = MN_W - PAD - 8 * mm      # main inner width
+# ── Styles ────────────────────────────────────────────────────────────────────
+NAME    = ParagraphStyle("name",    fontName="Helvetica-Bold",    fontSize=22, textColor=DARK,   leading=26, alignment=TA_CENTER)
+TITLE   = ParagraphStyle("title",   fontName="Helvetica",         fontSize=11, textColor=ACCENT, leading=14, alignment=TA_CENTER)
+CRED    = ParagraphStyle("cred",    fontName="Helvetica",         fontSize=8.5,textColor=GREY,   leading=12, alignment=TA_CENTER)
+CONTACT = ParagraphStyle("contact", fontName="Helvetica",         fontSize=8,  textColor=MID,    leading=12, alignment=TA_CENTER)
+SECHDR  = ParagraphStyle("sechdr",  fontName="Helvetica-Bold",    fontSize=10, textColor=ACCENT, leading=14, spaceAfter=2)
+BODY    = ParagraphStyle("body",    fontName="Helvetica",         fontSize=9,  textColor=MID,    leading=13, alignment=TA_JUSTIFY)
+BULLET  = ParagraphStyle("bullet",  fontName="Helvetica",         fontSize=9,  textColor=MID,    leading=13, leftIndent=12, firstLineIndent=-6)
+JOB_T   = ParagraphStyle("jobt",   fontName="Helvetica-Bold",    fontSize=9.5,textColor=DARK,   leading=13)
+JOB_C   = ParagraphStyle("jobc",   fontName="Helvetica-Bold",    fontSize=9,  textColor=ACCENT, leading=12)
+JOB_D   = ParagraphStyle("jobd",   fontName="Helvetica-Oblique", fontSize=8.5,textColor=GREY,   leading=12)
+SMALL   = ParagraphStyle("small",  fontName="Helvetica",         fontSize=8.5,textColor=MID,    leading=12)
+BOLD    = ParagraphStyle("bold",   fontName="Helvetica-Bold",    fontSize=9,  textColor=DARK,   leading=13)
+QUOTE   = ParagraphStyle("quote",  fontName="Helvetica-Oblique", fontSize=8,  textColor=GREY,   leading=12, alignment=TA_CENTER)
+SKILL_L = ParagraphStyle("skl",    fontName="Helvetica-Bold",    fontSize=8.5,textColor=DARK,   leading=12)
+SKILL_V = ParagraphStyle("skv",    fontName="Helvetica",         fontSize=8.5,textColor=MID,    leading=12)
 
-# ── Custom Flowables ──────────────────────────────────────────────────────────
-class SkillBar(Flowable):
-    def __init__(self, label, pct, bar_color, width):
-        super().__init__()
-        self.label = label; self.pct = pct
-        self.bar_color = bar_color; self.width = width
-        self._height = 16
-
-    def draw(self):
-        c = self.canv
-        c.setFont("Helvetica", 7.5); c.setFillColor(SL3)
-        c.drawString(0, 8, self.label)
-        c.setFillColor(SL5)
-        c.drawRightString(self.width, 8, f"{self.pct}%")
-        c.setFillColor(SL6)
-        c.roundRect(0, 2, self.width, 4, 2, fill=1, stroke=0)
-        c.setFillColor(self.bar_color)
-        c.roundRect(0, 2, self.width * self.pct / 100, 4, 2, fill=1, stroke=0)
-
-
-class PillHeader(Flowable):
-    def __init__(self, text, accent, width):
-        super().__init__()
-        self.text = text; self.accent = accent
-        self.width = width; self._height = 17
-
-    def draw(self):
-        c = self.canv
-        c.setFillColor(self.accent)
-        c.roundRect(0, 0, self.width, self._height, 4, fill=1, stroke=0)
-        c.setFont("Helvetica-Bold", 8); c.setFillColor(WHITE)
-        c.drawCentredString(self.width / 2, 5, self.text.upper())
-
-
-class AccentHeader(Flowable):
-    def __init__(self, text, accent, width):
-        super().__init__()
-        self.text = text; self.accent = accent
-        self.width = width; self._height = 20
-
-    def draw(self):
-        c = self.canv
-        c.setFillColor(self.accent)
-        c.rect(0, 17, self.width, 2, fill=1, stroke=0)
-        c.rect(0, 0, 24, 2, fill=1, stroke=0)
-        c.setFont("Helvetica-Bold", 10); c.setFillColor(WHITE)
-        c.drawString(0, 3, self.text.upper())
-
-
-# ── Style helpers ─────────────────────────────────────────────────────────────
-def ps(name, **kw):
-    d = dict(fontName="Helvetica", fontSize=8.5, textColor=SL3, leading=12)
-    d.update(kw)
-    return ParagraphStyle(name, **d)
-
-def sp(h=4):
-    return Spacer(1, h)
-
-def sbsec(txt, col, w):
-    return [PillHeader(txt, col, w), sp(5)]
-
-def mnsec(txt, col, w):
-    return [AccentHeader(txt, col, w), sp(5)]
-
-
-# ── Page template ─────────────────────────────────────────────────────────────
-def make_template(doc):
-    # Frame 1: header (full width)
-    f_hdr = Frame(0, H - HDR_H, W, HDR_H,
-                  leftPadding=10*mm, rightPadding=10*mm,
-                  topPadding=6*mm, bottomPadding=3*mm, id="header")
-    # Frame 2: sidebar
-    f_sb = Frame(0, 0, SB_W, BODY_H,
-                 leftPadding=PAD, rightPadding=PAD,
-                 topPadding=4*mm, bottomPadding=4*mm, id="sidebar")
-    # Frame 3: main
-    f_mn = Frame(SB_W + 2*mm, 0, W - SB_W - 2*mm, BODY_H,
-                 leftPadding=PAD, rightPadding=8*mm,
-                 topPadding=4*mm, bottomPadding=4*mm, id="main")
-
-    def on_page(canvas, doc):
-        canvas.saveState()
-        canvas.setFillColor(BG)
-        canvas.rect(0, 0, W, H, fill=1, stroke=0)
-        # header bg
-        canvas.setFillColor(BG_HDR)
-        canvas.rect(0, H - HDR_H, W, HDR_H, fill=1, stroke=0)
-        # top accent line
-        canvas.setFillColor(INDIGO)
-        canvas.rect(0, H - 2.5, W * 0.55, 2.5, fill=1, stroke=0)
-        canvas.setFillColor(PURPLE)
-        canvas.rect(W * 0.55, H - 2.5, W * 0.45, 2.5, fill=1, stroke=0)
-        # sidebar bg
-        canvas.setFillColor(BG_SB)
-        canvas.rect(0, 0, SB_W, BODY_H, fill=1, stroke=0)
-        # divider
-        canvas.setStrokeColor(SL6)
-        canvas.setLineWidth(0.5)
-        canvas.line(SB_W, 0, SB_W, BODY_H)
-        canvas.restoreState()
-
-    return PageTemplate(id="cv", frames=[f_hdr, f_sb, f_mn], onPage=on_page)
-
+def sp(h=4): return Spacer(1, h)
+def hr(): return HRFlowable(width="100%", thickness=0.5, color=LINE, spaceAfter=5, spaceBefore=5)
+def section(title):
+    return [
+        Paragraph(title.upper(), SECHDR),
+        HRFlowable(width="100%", thickness=1.5, color=ACCENT, spaceAfter=6, spaceBefore=0),
+    ]
 
 # ── Build ─────────────────────────────────────────────────────────────────────
 def build():
-    doc = BaseDocTemplate("assets/Bannaga_CV.pdf", pagesize=A4,
-                          leftMargin=0, rightMargin=0,
-                          topMargin=0, bottomMargin=0)
-    doc.addPageTemplates([make_template(doc)])
-
-    N  = ps("n",  fontName="Helvetica-Bold", fontSize=21, textColor=WHITE, leading=25, alignment=TA_CENTER)
-    TL = ps("tl", fontName="Helvetica",      fontSize=10, textColor=INDIGO, leading=14, alignment=TA_CENTER)
-    CR = ps("cr", fontName="Helvetica",      fontSize=7.5, textColor=SL4, leading=11, alignment=TA_CENTER)
-    CN = ps("cn", fontName="Helvetica",      fontSize=7,   textColor=SL4, leading=11, alignment=TA_CENTER)
-    BD = ps("bd", fontName="Helvetica",      fontSize=8.2, textColor=SL3, leading=12)
-    BU = ps("bu", fontName="Helvetica",      fontSize=8.2, textColor=SL3, leading=12, leftIndent=8)
-    LB = ps("lb", fontName="Helvetica-Bold", fontSize=8.5, textColor=WHITE, leading=12)
-    SM = ps("sm", fontName="Helvetica",      fontSize=7.5, textColor=SL4, leading=11)
-    JT = ps("jt", fontName="Helvetica-Bold", fontSize=9,   textColor=WHITE, leading=13)
-    JC = ps("jc", fontName="Helvetica-Bold", fontSize=8,   textColor=INDIGO, leading=12)
-    JD = ps("jd", fontName="Helvetica-Oblique", fontSize=7.5, textColor=SL5, leading=11)
-    PT = ps("pt", fontName="Helvetica-Bold", fontSize=8.5, textColor=WHITE, leading=12)
-    PD = ps("pd", fontName="Helvetica",      fontSize=8,   textColor=SL4, leading=11, leftIndent=8)
-    CT = ps("ct", fontName="Helvetica",      fontSize=7.5, textColor=SL3, leading=11, leftIndent=4)
-    QT = ps("qt", fontName="Helvetica-Oblique", fontSize=7.5, textColor=SL5, leading=12, alignment=TA_CENTER)
-    AC = ps("ac", fontName="Helvetica",      fontSize=8,   textColor=SL3, leading=12)
+    doc = SimpleDocTemplate(
+        "assets/Bannaga_CV.pdf",
+        pagesize=A4,
+        leftMargin=18*mm, rightMargin=18*mm,
+        topMargin=15*mm, bottomMargin=15*mm,
+    )
 
     story = []
 
-    # ══════════════════════ HEADER FRAME ══════════════════════════════════════
-    story += [
-        Paragraph("Bannaga Altieb Abdul Muhsin", N),
-        sp(3),
-        Paragraph("Electrical Project Engineer  ·  Riyadh, Saudi Arabia", TL),
-        sp(2),
-        Paragraph("CEM®  ·  CMVP®  ·  LEED Green Associate  ·  Telecom &amp; Industrial Infrastructure  ·  Energy Optimization  ·  O&amp;M Excellence", CR),
-        sp(4),
-        Paragraph(
-            "+966 54 296 6343  ·  eng.altieb@gmail.com  ·  LinkedIn: bannaga-abdalmuhsin  ·  "
-            "WhatsApp: +966 54 296 6343  ·  Facebook: bannga.altieb  ·  X: AltiebBannaga  ·  "
-            "Instagram: bannga.altieb  ·  TikTok: bannagaaltieb94", CN),
-        FrameBreak(),
-    ]
+    # ── NAME & CONTACT ────────────────────────────────────────────────────────
+    story.append(Paragraph("Bannaga Altieb Abdul Muhsin", NAME))
+    story.append(sp(4))
+    story.append(Paragraph("Electrical Project Engineer  |  Riyadh, Saudi Arabia", TITLE))
+    story.append(sp(3))
+    story.append(Paragraph("CEM®  ·  CMVP®  ·  LEED Green Associate", CRED))
+    story.append(sp(6))
 
-    # ══════════════════════ SIDEBAR FRAME ═════════════════════════════════════
-    W2 = SB_IW
+    # Contact row
+    story.append(Paragraph(
+        "+966 54 296 6343  |  eng.altieb@gmail.com  |  linkedin.com/in/bannaga-abdalmuhsin  |  "
+        "x.com/AltiebBannaga  |  instagram.com/bannga.altieb  |  tiktok.com/@bannagaaltieb94  |  "
+        "facebook.com/bannga.altieb",
+        CONTACT))
+    story.append(sp(8))
+    story.append(HRFlowable(width="100%", thickness=2, color=ACCENT, spaceAfter=10, spaceBefore=0))
 
-    def sb(*items): story.extend(items)
+    # ── PROFESSIONAL SUMMARY ──────────────────────────────────────────────────
+    story += section("Professional Summary")
+    story.append(Paragraph(
+        "Certified Energy Manager (CEM®) and Certified Measurement &amp; Verification Professional (CMVP®) with "
+        "12+ years of experience in electrical and energy engineering. Specializes in project management, telecom "
+        "power systems, energy-efficient solutions, and technical operations across diverse infrastructure. "
+        "Expertise spans data collection, energy analysis, facilities management, AI-driven dashboards, and "
+        "structured reporting. Delivered innovative, reliable, and performance-driven engineering solutions across "
+        "telecom, power generation, and industrial sectors. Holds a B.Sc. in Electronic Control Engineering with "
+        "additional certifications in LEED Green Associate and SCADA systems. Fluent in English and Arabic.",
+        BODY))
+    story.append(sp(10))
 
-    def skill_group(title, col, skills):
-        sb(*sbsec(title, col, W2))
-        for lbl, pct in skills:
-            sb(SkillBar(lbl, pct, col, W2), sp(3))
-        sb(sp(7))
-
-    skill_group("Power Systems", INDIGO, [
-        ("HV/MV/LV Engineering", 95), ("SCADA / DCS / PLC", 92),
-        ("Energy Auditing (CEM®)", 90), ("Commissioning & Testing", 88),
-        ("Power System Protection", 85),
-    ])
-    skill_group("AI & Data", PURPLE, [
-        ("Power BI / DAX", 92), ("Python / ML", 88),
-        ("SQL Server", 85), ("Data Dashboards", 87),
-    ])
-    skill_group("Frontend", CYAN, [
-        ("React / Next.js", 95), ("TypeScript", 90), ("Tailwind CSS", 98),
-    ])
-    skill_group("Backend", GREEN, [
-        ("Node.js", 88), ("PostgreSQL", 85), ("GraphQL", 82),
-    ])
-    skill_group("Design", PINK, [
-        ("Figma", 96), ("Power BI Visuals", 92), ("UI Systems", 94),
-    ])
-
-    # Education
-    sb(*sbsec("Education", ORANGE, W2))
-    sb(Paragraph("B.Sc. Electronic Engineering", LB),
-       Paragraph("(Control Engineering)", SM),
-       Paragraph("El Neelain University · 2007–2012", SM),
-       sp(7))
-
-    # Certifications
-    sb(*sbsec("Certifications", INDIGO, W2))
-    for c in [
-        "CMVP® — Measurement & Verification",
-        "CEM® — Certified Energy Manager",
-        "Machine Learning with Python",
-        "Power BI Essential Training",
-        "LEED Green Associate",
-        "Learning Excel: Data Analysis",
-        "Quality Engineering",
-        "SCADA / PLC / DCS / RTU",
-        "Non-Technical Skills of Data Scientists",
-    ]:
-        sb(Paragraph(f"✓ {c}", CT), sp(1))
-    sb(sp(7))
-
-    # Languages
-    sb(*sbsec("Languages", CYAN, W2))
-    sb(Paragraph("Arabic — Native", LB),
-       Paragraph("English — Professional", LB),
-       sp(7))
-
-    # Memberships
-    sb(*sbsec("Memberships", PURPLE, W2))
-    sb(Paragraph("Saudi Council of Engineers (SCE)", SM),
-       Paragraph("Sudanese Engineers Association (SEA)", SM),
-       sp(7))
-
-    # Availability
-    sb(*sbsec("Availability", GREEN, W2))
-    sb(Paragraph("Sun–Thu: 8:00 AM – 6:00 PM", SM),
-       Paragraph("Weekends: On-call for urgent needs", SM),
-       Paragraph("Open to short-notice regional travel", SM),
-       sp(7))
-
-    # Interests
-    sb(*sbsec("Interests", ORANGE, W2))
-    for h in ["Electrical Power Systems", "Energy Efficiency",
-              "Automation & Control", "Data Analysis",
-              "Innovation & New Tech"]:
-        sb(Paragraph(f"· {h}", CT), sp(1))
-
-    story.append(FrameBreak())
-
-    # ══════════════════════ MAIN FRAME ════════════════════════════════════════
-    W3 = MN_IW
-
-    def mn(*items): story.extend(items)
-
-    # Stats row inside main frame
-    stats = Table([[
-        Paragraph("12+",  ps("sn", fontName="Helvetica-Bold", fontSize=14, textColor="#6366f1", leading=16, alignment=TA_CENTER)),
-        Paragraph("Years\nExp.", ps("sl", fontSize=7, textColor=SL4, leading=9, alignment=TA_CENTER)),
-        Paragraph("15+",  ps("sn", fontName="Helvetica-Bold", fontSize=14, textColor="#8b5cf6", leading=16, alignment=TA_CENTER)),
-        Paragraph("Certs\n& Training", ps("sl", fontSize=7, textColor=SL4, leading=9, alignment=TA_CENTER)),
-        Paragraph("60+",  ps("sn", fontName="Helvetica-Bold", fontSize=14, textColor="#22d3ee", leading=16, alignment=TA_CENTER)),
-        Paragraph("MV/LV\nAssets", ps("sl", fontSize=7, textColor=SL4, leading=9, alignment=TA_CENTER)),
-        Paragraph("18%",  ps("sn", fontName="Helvetica-Bold", fontSize=14, textColor="#4ade80", leading=16, alignment=TA_CENTER)),
-        Paragraph("Cost\nReduction", ps("sl", fontSize=7, textColor=SL4, leading=9, alignment=TA_CENTER)),
-    ]], colWidths=[16*mm, 22*mm, 16*mm, 22*mm, 16*mm, 22*mm, 16*mm, 22*mm])
-    stats.setStyle(TableStyle([
+    # ── KEY METRICS ───────────────────────────────────────────────────────────
+    metrics_data = [[
+        Paragraph("12+\nYears Experience", ParagraphStyle("m", fontName="Helvetica-Bold", fontSize=10,
+            textColor=ACCENT, leading=14, alignment=TA_CENTER)),
+        Paragraph("15+\nCertifications &amp; Training", ParagraphStyle("m", fontName="Helvetica-Bold", fontSize=10,
+            textColor=ACCENT, leading=14, alignment=TA_CENTER)),
+        Paragraph("60+\nMV/LV Assets Commissioned", ParagraphStyle("m", fontName="Helvetica-Bold", fontSize=10,
+            textColor=ACCENT, leading=14, alignment=TA_CENTER)),
+        Paragraph("18%\nUtility Cost Reduction", ParagraphStyle("m", fontName="Helvetica-Bold", fontSize=10,
+            textColor=ACCENT, leading=14, alignment=TA_CENTER)),
+    ]]
+    metrics = Table(metrics_data, colWidths=[(W - 36*mm) / 4] * 4)
+    metrics.setStyle(TableStyle([
         ("ALIGN",        (0,0), (-1,-1), "CENTER"),
         ("VALIGN",       (0,0), (-1,-1), "MIDDLE"),
-        ("LEFTPADDING",  (0,0), (-1,-1), 1),
-        ("RIGHTPADDING", (0,0), (-1,-1), 1),
-        ("TOPPADDING",   (0,0), (-1,-1), 3),
-        ("BOTTOMPADDING",(0,0), (-1,-1), 3),
-        ("BACKGROUND",   (0,0), (-1,-1), colors.HexColor("#1e2638")),
-        ("ROUNDEDCORNERS", (0,0), (-1,-1), [4,4,4,4]),
+        ("BACKGROUND",   (0,0), (-1,-1), LIGHT),
+        ("TOPPADDING",   (0,0), (-1,-1), 6),
+        ("BOTTOMPADDING",(0,0), (-1,-1), 6),
+        ("GRID",         (0,0), (-1,-1), 0.5, LINE),
+        ("ROUNDEDCORNERS",(0,0),(-1,-1), [4,4,4,4]),
     ]))
-    mn(stats, sp(8))
+    story.append(metrics)
+    story.append(sp(10))
 
-    # Professional Summary
-    mn(*mnsec("Professional Summary", INDIGO, W3))
-    mn(Paragraph(
-        "A Certified Energy Manager (CEM®) and Certified Measurement &amp; Verification Professional (CMVP®) "
-        "with over a decade of experience in electrical and energy engineering. Specializes in project management, "
-        "telecom power systems, energy-efficient solutions, and technical operations across diverse infrastructure. "
-        "Strong expertise in data collection, energy analysis, facilities management, structured reporting, and AI-driven "
-        "dashboards. Holds a B.Sc. in Electronic Control Engineering with certifications in LEED Green Associate, "
-        "SCADA systems, Machine Learning, and Power BI. Fluent in English and Arabic. Committed to driving operational "
-        "excellence, improving system reliability, and delivering measurable results through disciplined engineering.",
-        BD), sp(8))
+    # ── EXPERIENCE ────────────────────────────────────────────────────────────
+    story += section("Professional Experience")
 
-    # AI & Development
-    mn(*mnsec("AI & Development", PURPLE, W3))
-    mn(Paragraph("<b>AI &amp; Automation</b>", LB))
-    for b in [
-        "Designed Python-based automation to streamline energy performance reporting and KPI tracking.",
-        "Developed ML-based anomaly alerts for telecom site power consumption behavior.",
-        "Built governance-ready Energy &amp; Environmental dashboards for CO2 footprint monitoring.",
-        "Applied Power BI, SQL Server, and DAX to model operational trends across multi-site networks.",
-    ]:
-        mn(Paragraph(f"▸ {b}", BU))
-    mn(sp(4), Paragraph("<b>Development &amp; Tools</b>", LB))
-    for b in [
-        "Created troubleshooting guides and diagnostic scripts for SCADA / PLC / DCS systems.",
-        "Documented API-style checklists to standardize field data capture and site integrations.",
-        "Version-controlled documentation and engineering templates using Git/GitHub workflows.",
-    ]:
-        mn(Paragraph(f"▸ {b}", BU))
-    mn(sp(8))
-
-    # Experience
-    mn(*mnsec("Experience", INDIGO, W3))
-    exp = [
-        ("2019 – Present", "Electrical Project Engineer", "ACES · Riyadh", [
-            "Energy Manager &amp; efficiency designer across STC COW and Mobily ENM networks.",
-            "O&amp;M Engineer for Mobily ENM Managed Services — full facility &amp; CAFM/BMS oversight.",
-            "O&amp;M Engineer for STC COW Managed Services — 600+ nationwide telecom sites.",
-            "Developed technical troubleshooting &amp; preventive maintenance documentation.",
-            "Designed energy optimization initiatives achieving up to 18% utility cost reduction.",
-            "Mentored junior engineers and standardized field engineering practices.",
+    experience = [
+        ("2019 – Present", "Electrical Project Engineer", "ACES  |  Riyadh, Saudi Arabia", [
+            "Serve as Energy Manager and efficiency designer across STC COW and Mobily ENM managed networks.",
+            "O&amp;M Engineer for Mobily ENM Managed Services — full facility operations, CAFM/BMS integration, and KPI reporting.",
+            "O&amp;M Engineer for STC COW Managed Services — operations and maintenance across 600+ nationwide telecom sites.",
+            "Designed and delivered multi-phase energy optimization programs achieving up to 18% reduction in utility costs.",
+            "Developed Python-based automation for energy performance reporting and ML-based anomaly detection alerts.",
+            "Built AI-driven Energy &amp; Environmental Dashboard for CO2 footprint monitoring across all STC COW sites.",
+            "Authored comprehensive technical troubleshooting and preventive maintenance documentation.",
+            "Mentored junior engineers and standardized field engineering practices across all sites.",
         ]),
-        ("2018 – 2019", "Electrical Project Engineer", "Absar · Riyadh", [
-            "Executed SEC unified-contract builds for 60+ MV/LV electrical assets.",
-            "Installed RMUs, transformers, LV switchgear, and mini-pillars.",
-            "Full commissioning, testing, and zero-defect SEC handover documentation.",
-            "SCADA monitoring, integration, and control system setup.",
+        ("2018 – 2019", "Electrical Project Engineer", "Absar  |  Riyadh, Saudi Arabia", [
+            "Executed SEC unified-contract builds for 60+ MV/LV electrical assets including RMUs, transformers, and LV switchgear.",
+            "Performed full commissioning, testing, and zero-defect SEC handover documentation.",
+            "Installed and configured SCADA monitoring and control system integration.",
         ]),
         ("2017 – 2018", "Electrical Engineer", "BEMCO", [
             "Preventive and corrective maintenance for 11kV distribution networks.",
             "Developed standardized testing, inspection, and commissioning manuals.",
-            "Managed NCR resolutions and technical documentation workflows.",
+            "Managed NCR resolutions and maintained technical documentation workflows.",
         ]),
-        ("2012 – 2017", "Electrical Engineer", "SEC Thermal Generation · Sudan", [
-            "Operations and maintenance for a 200 MW thermal generation block.",
-            "Managed wastewater treatment systems (PH meters / OC 4000 DCS).",
+        ("2012 – 2017", "Electrical Engineer", "SEC Thermal Generation  |  Sudan", [
+            "Day-to-day operations and maintenance for a 200 MW thermal generation block.",
+            "Managed wastewater treatment systems using PH meters and OC 4000 DCS controls.",
             "Preventive maintenance and fault management for 11kV distribution systems.",
+            "Developed operational procedures, safety documentation, and switching routines.",
         ]),
     ]
-    for date, title, co, bullets in exp:
-        mn(KeepTogether([
-            Paragraph(date, JD),
-            Paragraph(title, JT),
-            Paragraph(co, JC),
-            sp(2),
-            *[Paragraph(f"▸ {b}", BU) for b in bullets],
-            sp(7),
+
+    for date, title, company, bullets in experience:
+        job_header = Table([[
+            Paragraph(title, JOB_T),
+            Paragraph(date, ParagraphStyle("dr", fontName="Helvetica-Oblique", fontSize=8.5,
+                textColor=GREY, leading=12, alignment=TA_RIGHT)),
+        ]], colWidths=[(W - 36*mm) * 0.68, (W - 36*mm) * 0.32])
+        job_header.setStyle(TableStyle([
+            ("VALIGN", (0,0), (-1,-1), "MIDDLE"),
+            ("LEFTPADDING", (0,0), (-1,-1), 0),
+            ("RIGHTPADDING", (0,0), (-1,-1), 0),
+            ("TOPPADDING", (0,0), (-1,-1), 0),
+            ("BOTTOMPADDING", (0,0), (-1,-1), 0),
+        ]))
+        story.append(KeepTogether([
+            job_header,
+            Paragraph(company, JOB_C),
+            sp(3),
+            *[Paragraph(f"• {b}", BULLET) for b in bullets],
+            sp(8),
         ]))
 
-    # Key Projects
-    mn(*mnsec("Key Projects", PURPLE, W3))
+    # ── KEY PROJECTS ──────────────────────────────────────────────────────────
+    story += section("Key Projects")
+
     projects = [
-        ("STC COW Network — O&amp;M + Energy Optimization",
-         "End-to-end O&amp;M for 600+ telecom sites. Achieved up to 18% utility cost reduction through systematic energy auditing."),
+        ("STC COW Network — O&amp;M &amp; Energy Optimization",
+         "End-to-end operations and maintenance for 600+ telecom sites nationwide. Delivered systematic energy "
+         "auditing, SCADA oversight, and multi-phase optimization achieving up to 18% utility cost reduction."),
         ("Mobily ENM Managed Services",
-         "Full O&amp;M and facility operations including CAFM/BMS integration and outage prevention."),
+         "Full O&amp;M and facility operations for Mobily's ENM managed services network including CAFM/BMS "
+         "integration, outage prevention, and structured performance reporting."),
         ("Mobily Data Center Energy Audit",
-         "Comprehensive energy audit delivering measurable PUE improvements across critical DC infrastructure."),
+         "Comprehensive energy audit of critical data center infrastructure delivering measurable PUE improvements "
+         "and quantified energy savings certified under CEM® / CMVP® methodology."),
         ("SEC Unified Contract — MV/LV Commissioning",
-         "Installation and commissioning of 60+ MV/LV assets with full SCADA integration and SEC handover."),
-        ("PP12 Thermal Generation — 200 MW Plant Operations",
-         "Day-to-day operations including 11kV switching, safety routines, and DCS-based environmental monitoring."),
-        ("AI CO2 Dashboard — Energy &amp; Environmental Monitoring",
-         "ML anomaly detection and CO2 footprint tracking dashboards using Python, Power BI, and SQL Server."),
+         "Complete installation and commissioning of 60+ MV/LV electrical assets (RMUs, transformers, mini-pillars, "
+         "LV switchgear) with full SCADA integration and zero-defect SEC handover documentation."),
+        ("PP12 Thermal Generation Plant — 200 MW Operations",
+         "Day-to-day operations including 11kV switching, safety routines, wastewater treatment management, and "
+         "DCS-based environmental monitoring for a 200 MW thermal power station."),
+        ("AI CO2 &amp; Energy Dashboard",
+         "Built ML-based anomaly detection and CO2 footprint tracking dashboards for nationwide STC COW telecom "
+         "deployments using Python, Power BI, SQL Server, and DAX — enabling real-time environmental governance."),
     ]
+
     for title, desc in projects:
-        mn(KeepTogether([
-            Paragraph(f"▸ <b>{title}</b>", PT),
-            Paragraph(desc, PD),
-            sp(4),
+        story.append(KeepTogether([
+            Paragraph(f"<b>{title}</b>", SMALL),
+            Paragraph(desc, BODY),
+            sp(5),
         ]))
-    mn(sp(4))
+    story.append(sp(4))
 
-    # Key Accomplishments
-    mn(*mnsec("Key Accomplishments", GREEN, W3))
-    for a in [
-        "Reduced nationwide telecom utility costs by up to <b>18%</b> through multi-phase energy optimization.",
-        "Delivered O&amp;M for STC COW &amp; Mobily ENM networks with proactive outage prevention.",
-        "Authored automation routines reducing incident resolution time by <b>30%</b>.",
-        "Commissioned <b>60+ MV/LV assets</b> under SEC unified contracts with zero-defect SCADA handover.",
-        "Built AI-driven CO2 &amp; power efficiency dashboard across all STC COW sites.",
-        "Version-controlled all engineering templates using Git/GitHub workflows.",
+    # ── KEY ACCOMPLISHMENTS ───────────────────────────────────────────────────
+    story += section("Key Accomplishments")
+    accomplishments = [
+        "Reduced nationwide telecom site utility costs by up to <b>18%</b> through multi-phase energy optimization programs.",
+        "Delivered uninterrupted O&amp;M coverage for STC COW &amp; Mobily ENM with proactive outage prevention strategies.",
+        "Authored troubleshooting guides and automation routines reducing incident resolution time by <b>30%</b>.",
+        "Commissioned <b>60+ MV/LV assets</b> under SEC unified contracts with full SCADA integration and zero-defect handover.",
+        "Developed an AI-driven Energy &amp; Environmental Dashboard tracking real-time CO2 emissions and power efficiency.",
+        "Applied Power BI, Python, and SQL Server to model operational trends across 600+ multi-site telecom networks.",
+        "Version-controlled all engineering documentation and templates using Git/GitHub workflows.",
+    ]
+    for a in accomplishments:
+        story.append(Paragraph(f"• {a}", BULLET))
+        story.append(sp(2))
+    story.append(sp(8))
+
+    # ── AI & DEVELOPMENT ──────────────────────────────────────────────────────
+    story += section("AI & Development")
+    story.append(Paragraph("<b>AI &amp; Automation</b>", BOLD))
+    for b in [
+        "Designed Python-based automation to streamline energy performance reporting and KPI tracking across sites.",
+        "Developed machine-learning-based anomaly detection alerts for telecom site power consumption behavior.",
+        "Built governance-ready Energy &amp; Environmental dashboards for real-time CO2 footprint monitoring.",
+        "Applied Power BI, SQL Server, and DAX to model and visualize operational trends across multi-site networks.",
     ]:
-        mn(Paragraph(f"✦ {a}", AC), sp(3))
+        story.append(Paragraph(f"• {b}", BULLET))
+    story.append(sp(4))
+    story.append(Paragraph("<b>Development &amp; Tools</b>", BOLD))
+    for b in [
+        "Created reusable troubleshooting guides and diagnostic scripts for SCADA / PLC / DCS systems.",
+        "Documented API-style checklists to standardize field data capture and site integrations.",
+        "Version-controlled documentation and engineering templates using Git/GitHub workflows.",
+    ]:
+        story.append(Paragraph(f"• {b}", BULLET))
+    story.append(sp(10))
 
-    mn(sp(8))
-    mn(HRFlowable(width=W3, thickness=0.5, color=SL6))
-    mn(sp(5))
-    mn(Paragraph(
+    # ── SKILLS ────────────────────────────────────────────────────────────────
+    story += section("Technical Skills")
+
+    skill_groups = [
+        ("Power Systems & Electrical",
+         "HV/MV/LV Engineering · SCADA / DCS / PLC / RTU · Energy Auditing (CEM®) · "
+         "Commissioning & Testing · Power System Protection · 11kV Switching · Transformer & RMU Installation"),
+        ("AI, Data & Analytics",
+         "Power BI / DAX · Python / Machine Learning · SQL Server · Data Dashboards · "
+         "KPI Reporting · CO2 Monitoring · Anomaly Detection"),
+        ("Software & Development",
+         "React / Next.js · TypeScript · Tailwind CSS · Node.js · PostgreSQL · GraphQL · Git/GitHub"),
+        ("Design & Prototyping",
+         "Figma (96%) · Power BI Visuals (92%) · UI Systems (94%) · Dashboard Design · Wireframing"),
+        ("Energy & Facilities",
+         "Energy Management (CEM®/CMVP®) · CAFM · BMS Integration · Facility Operations · "
+         "PUE Optimization · Preventive Maintenance · LEED Green Associate"),
+        ("Tools & Platforms",
+         "Microsoft Office Suite · Power BI · SQL Server · Figma · SCADA Platforms · Git/GitHub · Python"),
+    ]
+
+    for label, value in skill_groups:
+        row = Table([[
+            Paragraph(label, SKILL_L),
+            Paragraph(value, SKILL_V),
+        ]], colWidths=[(W - 36*mm) * 0.28, (W - 36*mm) * 0.72])
+        row.setStyle(TableStyle([
+            ("VALIGN", (0,0), (-1,-1), "TOP"),
+            ("TOPPADDING", (0,0), (-1,-1), 4),
+            ("BOTTOMPADDING", (0,0), (-1,-1), 4),
+            ("LEFTPADDING", (0,0), (-1,-1), 0),
+            ("RIGHTPADDING", (0,0), (-1,-1), 0),
+            ("LINEBELOW", (0,0), (-1,-1), 0.3, LINE),
+        ]))
+        story.append(row)
+    story.append(sp(10))
+
+    # ── EDUCATION ─────────────────────────────────────────────────────────────
+    story += section("Education")
+    edu = Table([[
+        Paragraph("B.Sc. Electronic Engineering (Control)", JOB_T),
+        Paragraph("2007 – 2012", ParagraphStyle("dr", fontName="Helvetica-Oblique", fontSize=8.5,
+            textColor=GREY, leading=12, alignment=TA_RIGHT)),
+    ]], colWidths=[(W - 36*mm) * 0.68, (W - 36*mm) * 0.32])
+    edu.setStyle(TableStyle([
+        ("VALIGN", (0,0), (-1,-1), "MIDDLE"),
+        ("LEFTPADDING", (0,0), (-1,-1), 0),
+        ("RIGHTPADDING", (0,0), (-1,-1), 0),
+        ("TOPPADDING", (0,0), (-1,-1), 0),
+        ("BOTTOMPADDING", (0,0), (-1,-1), 0),
+    ]))
+    story.append(edu)
+    story.append(Paragraph("El Neelain University — Khartoum, Sudan", JOB_C))
+    story.append(sp(10))
+
+    # ── CERTIFICATIONS ────────────────────────────────────────────────────────
+    story += section("Certifications & Training")
+    certs = [
+        ("CMVP®", "Certified Measurement &amp; Verification Professional"),
+        ("CEM®", "Certified Energy Manager"),
+        ("ML", "Machine Learning with Python"),
+        ("Power BI", "Power BI Essential Training"),
+        ("LEED", "LEED Green Associate (Cert Prep)"),
+        ("Excel", "Learning Excel: Data Analysis"),
+        ("QE", "Quality Engineering"),
+        ("SCADA", "SCADA / PLC / DCS / RTU Systems"),
+        ("Data Sci", "The Non-Technical Skills of Effective Data Scientists"),
+    ]
+    cert_rows = []
+    for badge, name in certs:
+        cert_rows.append([
+            Paragraph(badge, SKILL_L),
+            Paragraph(name, SKILL_V),
+        ])
+    cert_table = Table(cert_rows, colWidths=[(W - 36*mm) * 0.15, (W - 36*mm) * 0.85])
+    cert_table.setStyle(TableStyle([
+        ("VALIGN", (0,0), (-1,-1), "MIDDLE"),
+        ("LEFTPADDING", (0,0), (-1,-1), 0),
+        ("RIGHTPADDING", (0,0), (-1,-1), 0),
+        ("TOPPADDING", (0,0), (-1,-1), 3),
+        ("BOTTOMPADDING", (0,0), (-1,-1), 3),
+        ("LINEBELOW", (0,0), (-1,-1), 0.3, LINE),
+    ]))
+    story.append(cert_table)
+    story.append(sp(10))
+
+    # ── MEMBERSHIPS, LANGUAGES, AVAILABILITY ──────────────────────────────────
+    side_data = [
+        [
+            Table([[
+                Paragraph("Memberships", SECHDR),
+                HRFlowable(width="100%", thickness=1.5, color=ACCENT, spaceAfter=5, spaceBefore=0),
+                Paragraph("Saudi Council of Engineers (SCE)", SMALL),
+                Paragraph("Sudanese Engineers Association (SEA)", SMALL),
+            ]], colWidths=[(W - 36*mm) * 0.32]),
+            Table([[
+                Paragraph("Languages", SECHDR),
+                HRFlowable(width="100%", thickness=1.5, color=ACCENT, spaceAfter=5, spaceBefore=0),
+                Paragraph("Arabic — Native", SMALL),
+                Paragraph("English — Professional", SMALL),
+            ]], colWidths=[(W - 36*mm) * 0.28]),
+            Table([[
+                Paragraph("Availability", SECHDR),
+                HRFlowable(width="100%", thickness=1.5, color=ACCENT, spaceAfter=5, spaceBefore=0),
+                Paragraph("Sun–Thu: 8:00 AM – 6:00 PM", SMALL),
+                Paragraph("Weekends: On-call for urgent needs", SMALL),
+                Paragraph("Open to short-notice regional travel", SMALL),
+            ]], colWidths=[(W - 36*mm) * 0.37]),
+        ]
+    ]
+    bottom_table = Table(side_data, colWidths=[
+        (W - 36*mm) * 0.32,
+        (W - 36*mm) * 0.28,
+        (W - 36*mm) * 0.37,
+    ])
+    bottom_table.setStyle(TableStyle([
+        ("VALIGN", (0,0), (-1,-1), "TOP"),
+        ("LEFTPADDING", (0,0), (-1,-1), 0),
+        ("RIGHTPADDING", (0,0), (0,-1), 8),
+        ("RIGHTPADDING", (1,0), (1,-1), 8),
+        ("RIGHTPADDING", (2,0), (2,-1), 0),
+        ("TOPPADDING", (0,0), (-1,-1), 0),
+        ("BOTTOMPADDING", (0,0), (-1,-1), 0),
+    ]))
+    story.append(bottom_table)
+    story.append(sp(10))
+
+    # ── HOBBIES ───────────────────────────────────────────────────────────────
+    story += section("Interests & Hobbies")
+    hobbies = ["Electrical Power Systems", "Energy Efficiency", "Automation & Control",
+               "Data Analysis & Visualization", "Innovation & New Technologies", "AI & Machine Learning"]
+    story.append(Paragraph("  ·  ".join(hobbies), BODY))
+    story.append(sp(10))
+
+    # ── FOOTER ────────────────────────────────────────────────────────────────
+    story.append(HRFlowable(width="100%", thickness=1, color=LINE, spaceAfter=6, spaceBefore=0))
+    story.append(Paragraph(
         '"You never change things by fighting the existing reality. '
-        'Build a new model that makes the old one obsolete." — R. Buckminster Fuller', QT))
-    mn(sp(3))
-    mn(Paragraph("© 2025 Eng. Bannaga Altieb Abdul Muhsin · eng.altieb@gmail.com · +966 54 296 6343", QT))
+        'To change something, build a new model that makes the old one obsolete."  — R. Buckminster Fuller',
+        QUOTE))
+    story.append(sp(4))
+    story.append(Paragraph(
+        "© 2025 Eng. Bannaga Altieb Abdul Muhsin  ·  eng.altieb@gmail.com  ·  +966 54 296 6343",
+        QUOTE))
 
     doc.build(story)
     print("✓ PDF saved: assets/Bannaga_CV.pdf")
