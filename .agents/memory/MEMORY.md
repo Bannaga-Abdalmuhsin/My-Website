@@ -1,0 +1,1 @@
+- [reportlab multi-page sidebar CV](reportlab-sidebar-cv.md) — two PageTemplates + FrameBreak for colored-sidebar resumes; avoid KeepTogether(Table) inside table cells
