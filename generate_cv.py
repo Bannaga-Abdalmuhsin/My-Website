@@ -77,7 +77,7 @@ def build():
     story += section("Professional Summary")
     story.append(Paragraph(
         "Certified Energy Manager (CEM®) and Certified Measurement &amp; Verification Professional (CMVP®) with "
-        "12+ years of experience in electrical and energy engineering. Specializes in project management, telecom "
+        "14+ years of experience in electrical and energy engineering. Specializes in project management, telecom "
         "power systems, energy-efficient solutions, and technical operations across diverse infrastructure. "
         "Expertise spans data collection, energy analysis, facilities management, AI-driven dashboards, and "
         "structured reporting. Delivered innovative, reliable, and performance-driven engineering solutions across "
@@ -88,7 +88,7 @@ def build():
 
     # ── KEY METRICS ───────────────────────────────────────────────────────────
     metrics_data = [[
-        Paragraph("12+\nYears Experience", ParagraphStyle("m", fontName="Helvetica-Bold", fontSize=10,
+        Paragraph("14+\nYears Experience", ParagraphStyle("m", fontName="Helvetica-Bold", fontSize=10,
             textColor=ACCENT, leading=14, alignment=TA_CENTER)),
         Paragraph("15+\nCertifications &amp; Training", ParagraphStyle("m", fontName="Helvetica-Bold", fontSize=10,
             textColor=ACCENT, leading=14, alignment=TA_CENTER)),
